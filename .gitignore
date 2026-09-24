@@ -1,0 +1,31 @@
+# Environnement virtuel Python
+.venv/
+
+# Fichiers Python temporaires
+__pycache__/
+*.pyc
+*.pyo
+
+# Variables d'environnement et clés API
+.env
+.env.*
+!.env.example
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers temporaires VS Code
+.vscode/
+
+# Cache des tests
+.pytest_cache/
+
+# Fichiers de modèle temporaires
+*.pkl
+*.joblib
+
+# Base de données locale
+*.db
+*.sqlite
+*.sqlite3
