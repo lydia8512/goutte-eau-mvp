@@ -84,7 +84,7 @@ goutte-eau-mvp/
 ├── .gitignore
 ├── README.md
 └── requirements.txt
-
+```
 ## Technologies utilisées
 
 Le MVP utilise principalement :
