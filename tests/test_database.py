@@ -153,3 +153,69 @@ def test_insert_weather_observation_updates_existing_row(
     assert len(observations) == 1
     assert observations[0]["temperature_c"] == 19.2
     assert observations[0]["rain"] == 1
+
+
+def test_get_weather_observations_returns_all_rows(
+    tmp_path,
+    monkeypatch,
+):
+    """Vérifie que toutes les observations peuvent être relues."""
+
+    database_path = tmp_path / "test_goutte_eau.db"
+
+    monkeypatch.setattr(db, "DATABASE_DIR", tmp_path)
+    monkeypatch.setattr(db, "DATABASE_PATH", database_path)
+
+    db.insert_weather_observation(
+        station_code="TEST001",
+        observed_at="2026-09-29T12:00:00",
+        temperature_c=18.0,
+        rain=0,
+    )
+
+    db.insert_weather_observation(
+        station_code="TEST002",
+        observed_at="2026-09-29T13:00:00",
+        temperature_c=19.0,
+        rain=1,
+    )
+
+    observations = db.get_weather_observations()
+
+    assert len(observations) == 2
+    assert observations[0]["station_code"] == "TEST001"
+    assert observations[1]["station_code"] == "TEST002"
+
+
+def test_get_weather_observations_filters_by_station(
+    tmp_path,
+    monkeypatch,
+):
+    """Vérifie le filtrage des observations par station."""
+
+    database_path = tmp_path / "test_goutte_eau.db"
+
+    monkeypatch.setattr(db, "DATABASE_DIR", tmp_path)
+    monkeypatch.setattr(db, "DATABASE_PATH", database_path)
+
+    db.insert_weather_observation(
+        station_code="TEST001",
+        observed_at="2026-09-29T12:00:00",
+        temperature_c=18.0,
+        rain=0,
+    )
+
+    db.insert_weather_observation(
+        station_code="TEST002",
+        observed_at="2026-09-29T13:00:00",
+        temperature_c=19.0,
+        rain=1,
+    )
+
+    observations = db.get_weather_observations(
+        station_code="TEST002"
+    )
+
+    assert len(observations) == 1
+    assert observations[0]["station_code"] == "TEST002"
+    assert observations[0]["temperature_c"] == 19.0

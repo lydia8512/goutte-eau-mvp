@@ -99,6 +99,36 @@ def insert_weather_observation(
         connection.commit()
 
 
+def get_weather_observations(
+    station_code: str | None = None,
+) -> list[dict]:
+    """Retourne les observations météo enregistrées dans SQLite."""
+
+    initialize_database()
+
+    with get_connection() as connection:
+        if station_code:
+            rows = connection.execute(
+                """
+                SELECT *
+                FROM weather_observations
+                WHERE station_code = ?
+                ORDER BY observed_at
+                """,
+                (station_code,),
+            ).fetchall()
+        else:
+            rows = connection.execute(
+                """
+                SELECT *
+                FROM weather_observations
+                ORDER BY observed_at
+                """
+            ).fetchall()
+
+    return [dict(row) for row in rows]
+
+
 def main() -> None:
     """Initialise la base SQLite du projet."""
 
