@@ -65,3 +65,91 @@ def test_initialize_database_can_run_twice(
     db.initialize_database()
 
     assert database_path.exists()
+
+
+def test_insert_weather_observation(
+    tmp_path,
+    monkeypatch,
+):
+    """Vérifie qu'une observation météo peut être enregistrée."""
+
+    database_path = tmp_path / "test_goutte_eau.db"
+
+    monkeypatch.setattr(db, "DATABASE_DIR", tmp_path)
+    monkeypatch.setattr(db, "DATABASE_PATH", database_path)
+
+    db.insert_weather_observation(
+        station_code="TEST001",
+        observed_at="2026-09-29T12:00:00",
+        temperature_c=18.5,
+        humidity_percent=75.0,
+        pressure_hpa=1015.2,
+        wind_speed_kmh=12.0,
+        precipitation_mm=1.4,
+        rain=1,
+    )
+
+    with db.get_connection() as connection:
+        observation = connection.execute(
+            """
+            SELECT *
+            FROM weather_observations
+            WHERE station_code = ?
+            AND observed_at = ?
+            """,
+            (
+                "TEST001",
+                "2026-09-29T12:00:00",
+            ),
+        ).fetchone()
+
+    assert observation is not None
+    assert observation["temperature_c"] == 18.5
+    assert observation["humidity_percent"] == 75.0
+    assert observation["precipitation_mm"] == 1.4
+    assert observation["rain"] == 1
+    assert observation["source"] == "infoclimat"
+
+
+def test_insert_weather_observation_updates_existing_row(
+    tmp_path,
+    monkeypatch,
+):
+    """Vérifie qu'une observation existante est mise à jour."""
+
+    database_path = tmp_path / "test_goutte_eau.db"
+
+    monkeypatch.setattr(db, "DATABASE_DIR", tmp_path)
+    monkeypatch.setattr(db, "DATABASE_PATH", database_path)
+
+    db.insert_weather_observation(
+        station_code="TEST001",
+        observed_at="2026-09-29T12:00:00",
+        temperature_c=18.5,
+        rain=0,
+    )
+
+    db.insert_weather_observation(
+        station_code="TEST001",
+        observed_at="2026-09-29T12:00:00",
+        temperature_c=19.2,
+        rain=1,
+    )
+
+    with db.get_connection() as connection:
+        observations = connection.execute(
+            """
+            SELECT *
+            FROM weather_observations
+            WHERE station_code = ?
+            AND observed_at = ?
+            """,
+            (
+                "TEST001",
+                "2026-09-29T12:00:00",
+            ),
+        ).fetchall()
+
+    assert len(observations) == 1
+    assert observations[0]["temperature_c"] == 19.2
+    assert observations[0]["rain"] == 1

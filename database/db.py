@@ -43,6 +43,62 @@ def initialize_database() -> None:
         connection.commit()
 
 
+def insert_weather_observation(
+    station_code: str,
+    observed_at: str,
+    temperature_c: float | None = None,
+    humidity_percent: float | None = None,
+    pressure_hpa: float | None = None,
+    wind_speed_kmh: float | None = None,
+    precipitation_mm: float | None = None,
+    rain: int | None = None,
+    source: str = "infoclimat",
+) -> None:
+    """Ajoute ou met à jour une observation météorologique."""
+
+    initialize_database()
+
+    with get_connection() as connection:
+        connection.execute(
+            """
+            INSERT INTO weather_observations (
+                station_code,
+                observed_at,
+                temperature_c,
+                humidity_percent,
+                pressure_hpa,
+                wind_speed_kmh,
+                precipitation_mm,
+                rain,
+                source
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(station_code, observed_at)
+            DO UPDATE SET
+                temperature_c = excluded.temperature_c,
+                humidity_percent = excluded.humidity_percent,
+                pressure_hpa = excluded.pressure_hpa,
+                wind_speed_kmh = excluded.wind_speed_kmh,
+                precipitation_mm = excluded.precipitation_mm,
+                rain = excluded.rain,
+                source = excluded.source
+            """,
+            (
+                station_code,
+                observed_at,
+                temperature_c,
+                humidity_percent,
+                pressure_hpa,
+                wind_speed_kmh,
+                precipitation_mm,
+                rain,
+                source,
+            ),
+        )
+
+        connection.commit()
+
+
 def main() -> None:
     """Initialise la base SQLite du projet."""
 
