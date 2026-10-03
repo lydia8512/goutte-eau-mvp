@@ -25,11 +25,19 @@ Thumbs.db
 *.pkl
 *.joblib
 
+# Modèle final du MVP à versionner
+!model/rain_model.joblib
+
 # Base de données locale
 *.db
 *.sqlite
 *.sqlite3
 
-# Données brutes et préparées générées localement
+# Données brutes générées localement
 data/raw/*.json
+
+# Données préparées générées localement
 data/processed/*.csv
+
+# Dataset final du MVP à versionner
+!data/processed/weather_dataset.csv
