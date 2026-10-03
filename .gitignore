@@ -29,3 +29,7 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Données brutes et préparées générées localement
+data/raw/*.json
+data/processed/*.csv

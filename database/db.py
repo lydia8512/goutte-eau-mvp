@@ -99,6 +99,64 @@ def insert_weather_observation(
         connection.commit()
 
 
+def insert_weather_observations(
+    observations: list[dict],
+) -> int:
+    """Ajoute ou met à jour plusieurs observations en une seule opération."""
+
+    if not observations:
+        return 0
+
+    initialize_database()
+
+    values = [
+        (
+            observation["station_code"],
+            observation["observed_at"],
+            observation.get("temperature_c"),
+            observation.get("humidity_percent"),
+            observation.get("pressure_hpa"),
+            observation.get("wind_speed_kmh"),
+            observation.get("precipitation_mm"),
+            observation.get("rain"),
+            observation.get("source", "infoclimat"),
+        )
+        for observation in observations
+    ]
+
+    with get_connection() as connection:
+        connection.executemany(
+            """
+            INSERT INTO weather_observations (
+                station_code,
+                observed_at,
+                temperature_c,
+                humidity_percent,
+                pressure_hpa,
+                wind_speed_kmh,
+                precipitation_mm,
+                rain,
+                source
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(station_code, observed_at)
+            DO UPDATE SET
+                temperature_c = excluded.temperature_c,
+                humidity_percent = excluded.humidity_percent,
+                pressure_hpa = excluded.pressure_hpa,
+                wind_speed_kmh = excluded.wind_speed_kmh,
+                precipitation_mm = excluded.precipitation_mm,
+                rain = excluded.rain,
+                source = excluded.source
+            """,
+            values,
+        )
+
+        connection.commit()
+
+    return len(values)
+
+
 def get_weather_observations(
     station_code: str | None = None,
 ) -> list[dict]:
